@@ -24,7 +24,7 @@
       </label>
       <label>
         Hours drinking:
-        <input type="number" id="hours" value="8" step="0.1" required />
+        <input type="number" id="hours" value="16" step="0.5" required />
       </label>
       <label>
         Number of pastis:
@@ -32,7 +32,23 @@
       </label>
       <label>
         Pastis(40%) Volume per drink (cl):
-        <input type="number" id="vol" value="3" step="0.1" required />
+        <input type="number" id="vol" value="3" step="0.5" required />
+      </label>
+      <label>
+        Absorption rate constant:
+        <select id="absRate">
+          <option value="1.8">Fast / Empty stomach (k=1.8 h⁻¹)</option>
+          <option value="1.2" selected>Avg (k=1.2 h⁻¹)</option>
+          <option value="0.8">Slow / After a meal (k=0.8 h⁻¹)</option>
+        </select>
+      </label>
+      <label>
+        Elimination rate β:
+        <select id="elimRate">
+          <option value="0.10">Novice (0.10 g/L·h)</option>
+          <option value="0.15" selected>Average (0.15 g/L·h)</option>
+          <option value="0.20">Battle-hardened (0.20 g/L·h)</option>
+        </select>
       </label>
       <button type="submit">Calculate</button>
     </form>
