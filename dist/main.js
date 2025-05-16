@@ -21,7 +21,7 @@ const thresholdPlugin = {
         });
     }
 };
-Chart.register(thresholdPlugin);
+Chart.register(thresholdPlugin, zoomPlugin);
 function calcBACSeries(vals) {
     const { weight, rFactor, hours, drinks, volCl, k, beta } = vals;
     const abv = 0.40, density = 0.789;
@@ -34,16 +34,13 @@ function calcBACSeries(vals) {
     let currentBAC = 0;
     const series = [];
     for (let t = 0; t <= tEnd; t += dt) {
-        // absorption
         let totalAbs = 0;
         for (const t_i of drinkTimes) {
-            if (t >= t_i) {
+            if (t >= t_i)
                 totalAbs += gramsPerDrink * (1 - Math.exp(-k * (t - t_i)));
-            }
         }
         const dAbs = (totalAbs - prevAbs) / (rFactor * weight);
         prevAbs = totalAbs;
-        // **continuous realistic elimination whenever BAC > 0**
         const dElim = currentBAC > 0 ? beta * dt : 0;
         currentBAC = Math.max(currentBAC + dAbs - dElim, 0);
         series.push({ t: parseFloat(t.toFixed(2)), bac: parseFloat(currentBAC.toFixed(4)) });
@@ -52,8 +49,7 @@ function calcBACSeries(vals) {
 }
 let chart = null;
 function drawChart(data) {
-    const ctx = document.getElementById('bacChart')
-        .getContext('2d');
+    const ctx = document.getElementById('bacChart').getContext('2d');
     const labels = data.map(pt => pt.t);
     const bacData = data.map(pt => pt.bac);
     if (chart)
@@ -66,7 +62,13 @@ function drawChart(data) {
                 x: { title: { display: true, text: 'Time (hours)' }, ticks: { stepSize: 1 } },
                 y: { beginAtZero: true, suggestedMax: 5, title: { display: true, text: 'BAC (g/L)' } }
             },
-            plugins: { legend: { display: false } }
+            plugins: {
+                legend: { display: false },
+                zoom: {
+                    pan: { enabled: true, mode: 'xy' },
+                    zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
+                }
+            }
         }
     });
 }
