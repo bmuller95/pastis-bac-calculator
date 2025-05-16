@@ -21,7 +21,7 @@ const thresholdPlugin = {
         });
     }
 };
-Chart.register(thresholdPlugin, zoomPlugin);
+Chart.register(thresholdPlugin);
 function calcBACSeries(vals) {
     const { weight, rFactor, hours, drinks, volCl, k, beta } = vals;
     const abv = 0.40, density = 0.789;
@@ -56,7 +56,17 @@ function drawChart(data) {
         chart.destroy();
     chart = new Chart(ctx, {
         type: 'line',
-        data: { labels, datasets: [{ label: 'BAC (g/L)', data: bacData, borderColor: 'blue', borderWidth: 2, fill: 'start', tension: 0.1 }] },
+        data: {
+            labels,
+            datasets: [{
+                    label: 'BAC (g/L)',
+                    data: bacData,
+                    borderColor: 'blue',
+                    borderWidth: 2,
+                    fill: 'start',
+                    tension: 0.1
+                }]
+        },
         options: {
             scales: {
                 x: { title: { display: true, text: 'Time (hours)' }, ticks: { stepSize: 1 } },
@@ -76,8 +86,13 @@ document.getElementById('inputForm').addEventListener('submit', e => {
     e.preventDefault();
     const getNum = (id) => parseFloat(document.getElementById(id).value);
     const inputs = {
-        weight: getNum('weight'), rFactor: getNum('rFactor'), hours: getNum('hours'), drinks: getNum('drinks'),
-        volCl: getNum('vol'), k: getNum('absRate'), beta: getNum('elimRate')
+        weight: getNum('weight'),
+        rFactor: getNum('rFactor'),
+        hours: getNum('hours'),
+        drinks: getNum('drinks'),
+        volCl: getNum('vol'),
+        k: getNum('absRate'),
+        beta: getNum('elimRate')
     };
     drawChart(calcBACSeries(inputs));
 });
