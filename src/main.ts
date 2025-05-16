@@ -91,7 +91,7 @@ function drawChart(data: { t: number; bac: number }[]) {
         legend: { display: false },
         zoom: {
           pan: { enabled: true, mode: 'xy' },
-          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
+          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'y' }
         }
       }
     }
