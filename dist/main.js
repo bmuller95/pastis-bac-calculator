@@ -2,33 +2,24 @@
 // src/main.ts
 function calcBACSeries(vals) {
     const { weight, rFactor, hours, drinks, volCl, k, beta } = vals;
-    const abv = 0.40; // 40% alcohol
-    const density = 0.789; // g/ml ethanol
-    // grams of ethanol per drink
+    const abv = 0.40, density = 0.789;
     const gramsPerDrink = volCl * 10 * abv * density;
-    // generate drink times so first is at t=0, last at t=hours
     const interval = drinks > 1 ? hours / (drinks - 1) : 0;
     const drinkTimes = Array.from({ length: drinks }, (_, i) => i * interval);
-    const tEnd = hours + 8; // extend 8h after last drink
-    const dt = 0.1; // time step (h)
+    const tEnd = hours + 8, dt = 0.1;
+    let prevAbs = 0;
+    let currentBAC = 0;
     const series = [];
-    let prevAbsorbed = 0; // track total grams absorbed at last step
-    let currentBAC = 0; // g/L
     for (let t = 0; t <= tEnd; t += dt) {
-        // 1) compute cumulative absorbed grams at time t
-        let totalAbsorbed = 0;
+        let totalAbs = 0;
         for (const t_i of drinkTimes) {
-            if (t >= t_i) {
-                totalAbsorbed += gramsPerDrink * (1 - Math.exp(-k * (t - t_i)));
-            }
+            if (t >= t_i)
+                totalAbs += gramsPerDrink * (1 - Math.exp(-k * (t - t_i)));
         }
-        // 2) incremental absorption in g → convert to BAC increment
-        const dAbsGrams = totalAbsorbed - prevAbsorbed;
+        const dAbsGrams = totalAbs - prevAbs;
+        prevAbs = totalAbs;
         const dAbsBAC = dAbsGrams / (rFactor * weight);
-        prevAbsorbed = totalAbsorbed;
-        // 3) elimination this interval (only if BAC>0)
         const dElim = currentBAC > 0 ? beta * dt : 0;
-        // 4) update BAC
         currentBAC = Math.max(currentBAC + dAbsBAC - dElim, 0);
         series.push({ t: parseFloat(t.toFixed(2)), bac: parseFloat(currentBAC.toFixed(4)) });
     }
@@ -36,24 +27,13 @@ function calcBACSeries(vals) {
 }
 let chart = null;
 function drawChart(data) {
-    const ctx = document.getElementById('bacChart')
-        .getContext('2d');
-    const labels = data.map(pt => pt.t.toString());
+    const ctx = document.getElementById('bacChart').getContext('2d');
+    const labels = data.map(pt => pt.t);
     const bacData = data.map(pt => pt.bac);
-    const thresholds = [
-        { label: '0.5 g/L', value: 0.5 },
-        { label: '0.8 g/L', value: 0.8 },
-        { label: '1.2 g/L', value: 1.2 },
-    ];
-    const thresholdDatasets = thresholds.map(th => ({
-        label: th.label,
-        data: Array(labels.length).fill(th.value),
-        borderColor: 'orange',
-        borderWidth: 1,
-        borderDash: [5, 5],
-        pointRadius: 0,
-        fill: false,
-        tension: 0,
+    const thresholds = [0.5, 0.8, 1.2];
+    const thDatasets = thresholds.map(val => ({
+        label: val + ' g/L', data: Array(labels.length).fill(val),
+        borderColor: 'orange', borderWidth: 1, borderDash: [5, 5], pointRadius: 0, fill: false
     }));
     if (chart)
         chart.destroy();
@@ -61,42 +41,27 @@ function drawChart(data) {
         type: 'line',
         data: {
             labels,
-            datasets: [
-                {
-                    label: 'BAC (g/L)',
-                    data: bacData,
-                    borderColor: 'blue',
-                    borderWidth: 2,
-                    fill: 'start',
-                    tension: 0.1,
-                },
-                ...thresholdDatasets,
-            ],
+            datasets: [{ label: 'BAC (g/L)', data: bacData, borderColor: 'blue', fill: 'start' }, ...thDatasets]
         },
         options: {
             scales: {
-                x: { title: { display: true, text: 'Time (hours)' } },
-                y: {
-                    beginAtZero: true,
-                    suggestedMax: 1.5,
-                    title: { display: true, text: 'Blood Alcohol Content (g/L)' },
+                x: {
+                    title: { display: true, text: 'Time (hours)' },
+                    ticks: { stepSize: 1 }
                 },
+                y: { beginAtZero: true, suggestedMax: 1.5, title: { display: true, text: 'Blood Alcohol Content (g/L)' } }
             },
-            plugins: { legend: { position: 'bottom' } },
-        },
+            plugins: { legend: { position: 'bottom' } }
+        }
     });
 }
-document.getElementById('inputForm')
-    .addEventListener('submit', e => {
+document.getElementById('inputForm').addEventListener('submit', e => {
     e.preventDefault();
-    const weight = parseFloat(document.getElementById('weight').value);
-    const rFactor = parseFloat(document.getElementById('rFactor').value);
-    const hours = parseFloat(document.getElementById('hours').value);
-    const drinks = parseFloat(document.getElementById('drinks').value);
-    const volCl = parseFloat(document.getElementById('vol').value);
-    const k = parseFloat(document.getElementById('absRate').value);
-    const beta = parseFloat(document.getElementById('elimRate').value);
-    const inputs = { weight, rFactor, hours, drinks, volCl, k, beta };
-    const series = calcBACSeries(inputs);
-    drawChart(series);
+    const getVal = (id) => parseFloat(document.getElementById(id).value);
+    const inputs = {
+        weight: getVal('weight'), rFactor: getVal('rFactor'), hours: getVal('hours'),
+        drinks: getVal('drinks'), volCl: getVal('vol'),
+        k: getVal('absRate'), beta: getVal('elimRate')
+    };
+    drawChart(calcBACSeries(inputs));
 });

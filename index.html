@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pastis Cuite Calculator</title>
   <link rel="stylesheet" href="style.css" />
   <!-- Chart.js from CDN -->
@@ -10,7 +11,8 @@
 <body>
   <div class="container">
     <h1>Pastis Cuite over Time (g/L)</h1>
-    <form id="inputForm">
+
+    <form id="inputForm" class="form">
       <label>
         Weight (kg):
         <input type="number" id="weight" value="70" required />
@@ -31,7 +33,7 @@
         <input type="number" id="drinks" value="20" required />
       </label>
       <label>
-        Pastis(40%) Volume per drink (cl):
+        Pastis (40%) Volume per drink (cl):
         <input type="number" id="vol" value="3" step="0.5" required />
       </label>
       <label>
@@ -53,7 +55,9 @@
       <button type="submit">Calculate</button>
     </form>
 
-    <canvas id="bacChart"></canvas>
+    <div class="chart-container">
+      <canvas id="bacChart"></canvas>
+    </div>
   </div>
   <script src="dist/main.js"></script>
 </body>
