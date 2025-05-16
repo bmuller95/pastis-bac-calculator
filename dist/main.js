@@ -75,11 +75,17 @@ function drawChart(data) {
             plugins: {
                 legend: { display: false },
                 zoom: {
-                    pan: { enabled: true, mode: 'xy', speed: 5 },
+                    pan: {
+                        wheel: { enabled: true, speed: 0.02, threshold: 10 },
+                        pinch: { enabled: true, speed: 0.02 },
+                        // enabled: true,
+                        // speed: 5,
+                        mode: 'xy'
+                    },
                     zoom: {
                         wheel: { enabled: true, speed: 0.02, threshold: 10 },
                         pinch: { enabled: true, speed: 0.02 },
-                        mode: 'y'
+                        mode: 'xy'
                     }
                 }
             }
