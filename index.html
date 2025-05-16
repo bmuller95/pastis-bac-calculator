@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Pastis Cuite Calculator</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -10,16 +10,17 @@
 <body>
   <div class="container">
     <h1>Pastis Cuite over Time (g/L)</h1>
+
     <form id="inputForm" class="form">
       <label>
         Weight (kg):
         <input type="number" id="weight" value="70" required />
-      <//label>
+      </label>
       <label>
         r-factor:
         <select id="rFactor">
-          <option value="0.68">Male (0.68)</option>
-          <option value="0.55">Female (0.55)</option>
+          <option value="0.68">Male (0.68 L/kg)</option>
+          <option value="0.55">Female (0.55 L/kg)</option>
         </select>
       </label>
       <label>
@@ -35,11 +36,11 @@
         <input type="number" id="vol" value="3" step="0.5" required />
       </label>
       <label>
-        Absorption rate constant:
+        Absorption constant k:
         <select id="absRate">
-          <option value="1.8">Fast / Empty stomach (k=1.8 h⁻¹)</option>
-          <option value="1.2" selected>Avg (k=1.2 h⁻¹)</option>
-          <option value="0.8">Slow / After a meal (k=0.8 h⁻¹)</option>
+          <option value="4.2">Slow (t₁/₂≈10 min, k=4.2 h⁻¹)</option>
+          <option value="6.0" selected>Average (t₁/₂≈7 min, k=6.0 h⁻¹)</option>
+          <option value="8.3">Fast (t₁/₂≈5 min, k=8.3 h⁻¹)</option>
         </select>
       </label>
       <label>
@@ -50,6 +51,7 @@
           <option value="0.20">Battle-hardened (0.20 g/L·h)</option>
         </select>
       </label>
+
       <button type="submit">Calculate</button>
     </form>
 
@@ -60,11 +62,12 @@
     <div class="threshold-legend">
       <div><span class="color-box green"></span>Mild relaxation (0–0.5 g/L)</div>
       <div><span class="color-box yellow"></span>Impaired coordination (0.5–2.0 g/L)</div>
-      <div><span class="color-box orange"></span>Intoxication symptoms (2.0–3.0 g/L)</div>
+      <div><span class="color-box orange"></span>Intoxication (2.0–3.0 g/L)</div>
       <div><span class="color-box red"></span>Loss of consciousness (3.0–4.0 g/L)</div>
       <div><span class="color-box darkred"></span>Potentially fatal (>4.0 g/L)</div>
     </div>
   </div>
+
   <script src="dist/main.js"></script>
 </body>
 </html>
