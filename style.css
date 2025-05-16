@@ -54,6 +54,7 @@ h1 {
   background: #0056b3;
 }
 .chart-container {
+  margin-top: 20px;
   position: relative;
   width: 100%;
   padding-top: 50%; /* maintains aspect ratio */
