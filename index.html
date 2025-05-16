@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pastis Cuite Calculator</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- Chart.js from CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -32,7 +31,7 @@
         <input type="number" id="drinks" value="20" required />
       </label>
       <label>
-        Pastis (40%) Volume per drink (cl):
+        Volume per drink (cl):
         <input type="number" id="vol" value="3" step="0.5" required />
       </label>
       <label>
@@ -53,8 +52,17 @@
       </label>
       <button type="submit">Calculate</button>
     </form>
+
     <div class="chart-container">
       <canvas id="bacChart"></canvas>
+    </div>
+
+    <div class="threshold-legend">
+      <div><span class="color-box green"></span>Mild relaxation (0–0.5 g/L)</div>
+      <div><span class="color-box yellow"></span>Impaired coordination (0.5–2.0 g/L)</div>
+      <div><span class="color-box orange"></span>Intoxication symptoms (2.0–3.0 g/L)</div>
+      <div><span class="color-box red"></span>Loss of consciousness (3.0–4.0 g/L)</div>
+      <div><span class="color-box darkred"></span>Potentially fatal (>4.0 g/L)</div>
     </div>
   </div>
   <script src="dist/main.js"></script>

@@ -7,10 +7,11 @@ const thresholdPlugin = {
         const { ctx, chartArea: { left, right, top, bottom }, scales: { y } } = chart;
         const maxY = (_a = y.max) !== null && _a !== void 0 ? _a : y._max;
         const zones = [
-            { from: 0, to: 0.5, color: 'rgba(0,255,0,0.1)' },
-            { from: 0.5, to: 0.8, color: 'rgba(255,255,0,0.1)' },
-            { from: 0.8, to: 1.2, color: 'rgba(255,165,0,0.1)' },
-            { from: 1.2, to: maxY, color: 'rgba(255,0,0,0.1)' }
+            { from: 0, to: 0.5, color: 'rgba(0,255,0,0.1)' }, // Mild relaxation
+            { from: 0.5, to: 2.0, color: 'rgba(255,255,0,0.1)' }, // Impaired vision, coordination
+            { from: 2.0, to: 3.0, color: 'rgba(255,165,0,0.1)' }, // Vomiting, intoxication
+            { from: 3.0, to: 4.0, color: 'rgba(255,0,0,0.1)' }, // Loss of consciousness
+            { from: 4.0, to: maxY, color: 'rgba(139,0,0,0.1)' } // Potentially fatal
         ];
         zones.forEach(z => {
             const y1 = y.getPixelForValue(z.from);

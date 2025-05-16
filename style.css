@@ -56,13 +56,35 @@ h1 {
 .chart-container {
   position: relative;
   width: 100%;
-  margin-top: 20px;
-  height: 300px; /* fixed height for mobile clarity */
+  padding-top: 50%; /* maintains aspect ratio */
 }
-canvas {
+.chart-container canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100% !important;
   height: 100% !important;
 }
+.threshold-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+  font-size: 0.9rem;
+}
+.threshold-legend .color-box {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 5px;
+  border: 1px solid #999;
+  vertical-align: middle;
+}
+.color-box.green    { background: rgba(0,255,0,0.6); }
+.color-box.yellow   { background: rgba(255,255,0,0.6); }
+.color-box.orange   { background: rgba(255,165,0,0.6); }
+.color-box.red      { background: rgba(255,0,0,0.6); }
+.color-box.darkred  { background: rgba(139,0,0,0.6); }
 @media (max-width: 480px) {
   .form label { flex: 1 1 100%; }
 }
