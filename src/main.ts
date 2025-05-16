@@ -1,8 +1,7 @@
-// Widmark‐based BAC calculator with first‐order absorption and selectable elimination
 // src/main.ts
 
-// Chart.js is loaded via <script> in index.html.
-// Tell TS that a global `Chart` exists:
+// Chart.js is loaded via the CDN in index.html.
+// Let TypeScript know there's a global `Chart`:
 declare const Chart: any;
 
 interface InputValues {
@@ -17,20 +16,26 @@ interface InputValues {
 
 function calcBACSeries(vals: InputValues) {
   const { weight, rFactor, hours, drinks, volCl, k, beta } = vals;
-  const abv = 0.40;           // 40% alcohol by volume
-  const density = 0.789;      // g/ml ethanol
+  const abv = 0.40;        // 40% alcohol
+  const density = 0.789;   // g/ml ethanol
 
+  // grams of ethanol per drink
   const gramsPerDrink = volCl * 10 * abv * density;
-  const drinkTimes = Array.from(
-    { length: drinks },
-    (_, i) => i * (hours / drinks)
-  );
 
-  const tEnd = hours + 8;
-  const dt = 0.1;
+  // generate drink times so first is at t=0, last at t=hours
+  const interval = drinks > 1 ? hours / (drinks - 1) : 0;
+  const drinkTimes = Array.from({ length: drinks }, (_, i) => i * interval);
+
+  const tEnd = hours + 8;  // extend 8h after last drink
+  const dt = 0.1;          // time step (h)
+
   const series: { t: number; bac: number }[] = [];
 
+  let prevAbsorbed = 0;    // track total grams absorbed at last step
+  let currentBAC = 0;      // g/L
+
   for (let t = 0; t <= tEnd; t += dt) {
+    // 1) compute cumulative absorbed grams at time t
     let totalAbsorbed = 0;
     for (const t_i of drinkTimes) {
       if (t >= t_i) {
@@ -38,8 +43,18 @@ function calcBACSeries(vals: InputValues) {
       }
     }
 
-    const raw = totalAbsorbed / (rFactor * weight) - beta * t;
-    series.push({ t, bac: Math.max(raw, 0) });
+    // 2) incremental absorption in g → convert to BAC increment
+    const dAbsGrams = totalAbsorbed - prevAbsorbed;
+    const dAbsBAC = dAbsGrams / (rFactor * weight);
+    prevAbsorbed = totalAbsorbed;
+
+    // 3) elimination this interval (only if BAC>0)
+    const dElim = currentBAC > 0 ? beta * dt : 0;
+
+    // 4) update BAC
+    currentBAC = Math.max(currentBAC + dAbsBAC - dElim, 0);
+
+    series.push({ t: parseFloat(t.toFixed(2)), bac: parseFloat(currentBAC.toFixed(4)) });
   }
 
   return series;
@@ -50,18 +65,18 @@ let chart: any = null;
 function drawChart(data: { t: number; bac: number }[]) {
   const ctx = (document.getElementById('bacChart') as HTMLCanvasElement)
     .getContext('2d')!;
-  const labels = data.map(pt => pt.t.toFixed(1));
-  const bacData = data.map(pt => pt.bac.toFixed(3));
+
+  const labels = data.map(pt => pt.t.toString());
+  const bacData = data.map(pt => pt.bac);
 
   const thresholds = [
     { label: '0.5 g/L', value: 0.5 },
     { label: '0.8 g/L', value: 0.8 },
     { label: '1.2 g/L', value: 1.2 },
   ];
-
   const thresholdDatasets = thresholds.map(th => ({
     label: th.label,
-    data: labels.map(() => th.value),
+    data: Array(labels.length).fill(th.value),
     borderColor: 'orange',
     borderWidth: 1,
     borderDash: [5, 5] as number[],
@@ -84,7 +99,7 @@ function drawChart(data: { t: number; bac: number }[]) {
           fill: 'start',
           tension: 0.1,
         },
-        ...thresholdDatasets
+        ...thresholdDatasets,
       ],
     },
     options: {
@@ -104,13 +119,14 @@ function drawChart(data: { t: number; bac: number }[]) {
 document.getElementById('inputForm')!
   .addEventListener('submit', e => {
     e.preventDefault();
-    const weight  = parseFloat((document.getElementById('weight') as HTMLInputElement).value);
-    const rFactor = parseFloat((document.getElementById('rFactor') as HTMLSelectElement).value);
-    const hours   = parseFloat((document.getElementById('hours') as HTMLInputElement).value);
-    const drinks  = parseFloat((document.getElementById('drinks') as HTMLInputElement).value);
-    const volCl   = parseFloat((document.getElementById('vol') as HTMLInputElement).value);
-    const k       = parseFloat((document.getElementById('absRate') as HTMLSelectElement).value);
-    const beta    = parseFloat((document.getElementById('elimRate') as HTMLSelectElement).value);
+
+    const weight  = parseFloat((<HTMLInputElement>document.getElementById('weight')).value);
+    const rFactor = parseFloat((<HTMLSelectElement>document.getElementById('rFactor')).value);
+    const hours   = parseFloat((<HTMLInputElement>document.getElementById('hours')).value);
+    const drinks  = parseFloat((<HTMLInputElement>document.getElementById('drinks')).value);
+    const volCl   = parseFloat((<HTMLInputElement>document.getElementById('vol')).value);
+    const k       = parseFloat((<HTMLSelectElement>document.getElementById('absRate')).value);
+    const beta    = parseFloat((<HTMLSelectElement>document.getElementById('elimRate')).value);
 
     const inputs: InputValues = { weight, rFactor, hours, drinks, volCl, k, beta };
     const series = calcBACSeries(inputs);

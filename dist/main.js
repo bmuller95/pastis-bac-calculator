@@ -1,24 +1,36 @@
 "use strict";
-// Widmark‐based BAC calculator with first‐order absorption and selectable elimination
 // src/main.ts
 function calcBACSeries(vals) {
     const { weight, rFactor, hours, drinks, volCl, k, beta } = vals;
-    const abv = 0.40; // 40% alcohol by volume
+    const abv = 0.40; // 40% alcohol
     const density = 0.789; // g/ml ethanol
+    // grams of ethanol per drink
     const gramsPerDrink = volCl * 10 * abv * density;
-    const drinkTimes = Array.from({ length: drinks }, (_, i) => i * (hours / drinks));
-    const tEnd = hours + 8;
-    const dt = 0.1;
+    // generate drink times so first is at t=0, last at t=hours
+    const interval = drinks > 1 ? hours / (drinks - 1) : 0;
+    const drinkTimes = Array.from({ length: drinks }, (_, i) => i * interval);
+    const tEnd = hours + 8; // extend 8h after last drink
+    const dt = 0.1; // time step (h)
     const series = [];
+    let prevAbsorbed = 0; // track total grams absorbed at last step
+    let currentBAC = 0; // g/L
     for (let t = 0; t <= tEnd; t += dt) {
+        // 1) compute cumulative absorbed grams at time t
         let totalAbsorbed = 0;
         for (const t_i of drinkTimes) {
             if (t >= t_i) {
                 totalAbsorbed += gramsPerDrink * (1 - Math.exp(-k * (t - t_i)));
             }
         }
-        const raw = totalAbsorbed / (rFactor * weight) - beta * t;
-        series.push({ t, bac: Math.max(raw, 0) });
+        // 2) incremental absorption in g → convert to BAC increment
+        const dAbsGrams = totalAbsorbed - prevAbsorbed;
+        const dAbsBAC = dAbsGrams / (rFactor * weight);
+        prevAbsorbed = totalAbsorbed;
+        // 3) elimination this interval (only if BAC>0)
+        const dElim = currentBAC > 0 ? beta * dt : 0;
+        // 4) update BAC
+        currentBAC = Math.max(currentBAC + dAbsBAC - dElim, 0);
+        series.push({ t: parseFloat(t.toFixed(2)), bac: parseFloat(currentBAC.toFixed(4)) });
     }
     return series;
 }
@@ -26,8 +38,8 @@ let chart = null;
 function drawChart(data) {
     const ctx = document.getElementById('bacChart')
         .getContext('2d');
-    const labels = data.map(pt => pt.t.toFixed(1));
-    const bacData = data.map(pt => pt.bac.toFixed(3));
+    const labels = data.map(pt => pt.t.toString());
+    const bacData = data.map(pt => pt.bac);
     const thresholds = [
         { label: '0.5 g/L', value: 0.5 },
         { label: '0.8 g/L', value: 0.8 },
@@ -35,7 +47,7 @@ function drawChart(data) {
     ];
     const thresholdDatasets = thresholds.map(th => ({
         label: th.label,
-        data: labels.map(() => th.value),
+        data: Array(labels.length).fill(th.value),
         borderColor: 'orange',
         borderWidth: 1,
         borderDash: [5, 5],
@@ -58,7 +70,7 @@ function drawChart(data) {
                     fill: 'start',
                     tension: 0.1,
                 },
-                ...thresholdDatasets
+                ...thresholdDatasets,
             ],
         },
         options: {
