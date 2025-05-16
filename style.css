@@ -62,6 +62,7 @@ h1 {
   left: 0;
   width: 100% !important;
   height: 100% !important;
+  touch-action: none;
 }
 .threshold-legend {
   display: flex;
